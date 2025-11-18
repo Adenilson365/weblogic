@@ -1,0 +1,4 @@
+#precisa criar o diretorio
+inventory_loc=/u01/oracle/oraInventory
+#grupo do usuario oracle
+inst_group=oinstall 
