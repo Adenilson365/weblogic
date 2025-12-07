@@ -11,7 +11,7 @@
 - comando de instalação:
 
 ```shell
-java -jar fmw_12.2.1.4.0_infrastructure.jar -silent -responseFile /u01/oracle/silent.xml -invPtrLoc /u01/oracle/software/oraInst.loc
+java -jar fmw_12.2.1.4.0_infrastructure.jar -silent -responseFile /u01/software/weblogic/silent.xml -invPtrLoc /u01/software/weblogic/oraInst.loc
 ```
 
 ## Criar Domínio usando wlst

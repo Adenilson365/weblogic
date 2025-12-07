@@ -30,7 +30,7 @@
 # Open a domain template.
 #=======================================================================================
 
-readTemplate("/u01/oracle/middleware/wlserver/common/templates/wls/wls.jar")
+readTemplate("/u01/app/oracle/product/middleware/wlserver/common/templates/wls/wls.jar")
 
 #=======================================================================================
 # Configure the Administration Server and SSL port.
@@ -53,9 +53,9 @@ set('ListenPort', 7002)
 #=======================================================================================
 # Define the user password for weblogic.
 #=======================================================================================
-
 cd('/')
 cd('Security/base_domain/User/weblogic')
+cmo.setPassword('weblogic123')
 # Please set password here before using this script, e.g. cmo.setPassword('value')
 
 #=======================================================================================
@@ -128,7 +128,7 @@ assign('JDBCSystemResource', 'myDataSource', 'Target', 'AdminServer')
 #=======================================================================================
 
 setOption('OverwriteDomain', 'true')
-writeDomain('/u01/oracle/middleware/wlserver/../user_projects/domains/basicWLSDomain')
+writeDomain('/u01/app/oracle/domains/basicWLSDomain')
 closeTemplate()
 
 #=======================================================================================
