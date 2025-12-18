@@ -67,6 +67,8 @@ export ORACLE_BASE=/u01/app/oracle
 export ORACLE_HOME=/u01/app/oracle/product/middleware # onde esta o WebLogic, onde foi isntalado no passo anterior
 export JAVA_HOME=/u01/app/oracle/product/jdk1.8.0_202  # onde esta a JDK 
 export PATH=$JAVA_HOME/bin:$ORACLE_HOME/oracle_common/common/bin:$PATH
+#Domain home
+export DOMAIN_HOME=/u01/app/oracle/domains/basicWLSDomain
 
 # Criar o domínio básico
 cd /u01/software/weblogic
@@ -79,6 +81,8 @@ nohup ./startNodeManager.sh > /u01/app/oracle/logs/nodemanager.log &
 nohup ./startWebLogic.sh > /u01/app/oracle/logs/adminserver.log & 
 tail -f /u01/app/oracle/logs/adminserver.log
 
+# Local servers
+#/u01/app/oracle/domains/basicWLSDomain/servers
 
 
 # Exportar Opatch

@@ -37,3 +37,24 @@ java -jar fmw_12.2.1.4.0_infrastructure.jar -silent -responseFile /u01/software/
 - Ficam dentro da pasta do domínio em /bin
 - script: starManagerServers.sh <nomeServidor>
 - Ser
+
+### EM
+
+> Para configurar o EM é necessário ter um banco de dados Oracle
+
+- Usei o Oracle XE 21c [Link](https://docs.oracle.com/en/database/oracle/oracle-database/21/xeinl/)
+
+OracleHome do DB : /opt/oracle/product/21c/dbhomeXE/bin/
+
+export PATH=$PATH:/opt/oracle/product/21c/dbhomeXE/bin/
+
+# Após ter um banco de dados
+
+- Execute os passos do extender-em.sh na vm do weblogic, com o weblogic desligado.
+
+# Adicionar ManagedServer
+
+- Execute o script criarManaged.sh
+- Após criar reinicie o weblogic
+- No Weblogic em environment, crie uma nova machine
+- Associe o server criado a ela.

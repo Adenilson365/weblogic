@@ -28,3 +28,6 @@ Java HotSpot(TM) 64-Bit Server VM (build 25.202-b08, mixed mode)
 
 #opatch
 13.9.4.2.1
+
+#Database
+Oracle Database 21c Express Edition Release 21.0.0.0.0 - Production Version 21.3.0.0.0
