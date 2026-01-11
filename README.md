@@ -58,3 +58,53 @@ export PATH=$PATH:/opt/oracle/product/21c/dbhomeXE/bin/
 - Após criar reinicie o weblogic
 - No Weblogic em environment, crie uma nova machine
 - Associe o server criado a ela.
+
+### Diretórios
+
+- Binários rcu: /u01/app-old/oracle/product/middleware/oracle_common/bin
+
+### Comandos para conectar na database
+
+- Antes precisa: Exportar a oracle_home e oracle_sid
+
+```
+sqlplus / as sysdba
+
+```
+
+```
+sqlplus sys/"<senha>"@//host:1521/xepdb1 as sysdba
+```
+
+- Listar components com rcu
+
+```
+$ORACLE_HOME/oracle_common/bin/rcu -silent -listComponents
+
+```
+
+###WLST
+
+- Conectar ao weblogic online
+
+```
+connect('weblogic','SENHA','t3://HOST_ADMIN:7001')
+cd('/JDBCSystemResources')
+ls()
+
+```
+
+### Restart do banco
+
+> Na vm do banco
+
+```shell
+  lsnrctl status
+  sqlplus / as sysdba
+  startup;
+  show pdbs;
+
+```
+
+- Após show pdbs deve aparecer algo como:
+  ![alt text](./assets/show-pdbs.png)

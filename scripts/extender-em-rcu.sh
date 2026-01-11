@@ -6,7 +6,7 @@
 ./rcu -silent -createRepository -databaseType ORACLE \
   -connectString 10.128.15.206:1521/xepdb1 \
   -dbUser sys -dbRole sysdba \
-  -schemaPrefix DEV01 \
+  -schemaPrefix DEV02 \
   -useSamePasswordForAllSchemaUsers true \
   -selectDependentsForComponents true \
   -component STB -component OPSS -component MDS -component WLS \
