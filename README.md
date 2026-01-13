@@ -100,6 +100,7 @@ ls()
 
 ```shell
   lsnrctl status
+  lsnrctl start
   sqlplus / as sysdba
   startup;
   show pdbs;
@@ -108,3 +109,12 @@ ls()
 
 - Após show pdbs deve aparecer algo como:
   ![alt text](./assets/show-pdbs.png)
+
+- Verificar se há listener
+
+```shell
+ ss -lntp | grep 1521
+```
+
+Bugs:
+[Malformed Medium](https://medium.com/nerd-for-tech/solving-url-protocol-exceptions-with-latest-jdk-updates-7c6c85844518)
