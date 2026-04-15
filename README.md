@@ -1,5 +1,13 @@
 ### Tem por Objetivo doumentar a Jornada de Instalar o application server Weblogic
 
+#
+
+### Documentação
+
+[Central de Downloads Oracle](https://edelivery.oracle.com/osdc/faces/SoftwareDelivery)
+
+#
+
 ### Preparando ambiente
 
 - [sdkMan](https://sdkman.io/install/) - Permite instalar versões java de forma mais simplificada
@@ -115,6 +123,10 @@ ls()
 ```shell
  ss -lntp | grep 1521
 ```
+
+- Se precisar restaurar a VM é necessário manter o mesmo host, ou alterar no arquivo de hosts do banco:
+  > O banco de dados é sensível ao hostname da VM
+- /opt/oracle/homes/OraDBHome21cXE/network/admin/listener.ora
 
 Bugs:
 [Malformed Medium](https://medium.com/nerd-for-tech/solving-url-protocol-exceptions-with-latest-jdk-updates-7c6c85844518)

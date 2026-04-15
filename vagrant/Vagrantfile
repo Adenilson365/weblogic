@@ -1,0 +1,57 @@
+Vagrant.configure("2") do |config|
+  pubkey_path = ENV.fetch("PUBKEY_PATH", File.expand_path("../.id_rsa.pub", __dir__))
+  pubkey = File.exist?(pubkey_path) ? File.read(pubkey_path).strip : ""
+  raise "Public key not found or empty: #{pubkey_path}" if pubkey.empty?
+  bridge_iface = ENV.fetch("VAGRANT_BRIDGE", "enp2s0")
+
+  # Box base Oracle Linux 8
+  config.vm.box = "generic/oracle8"
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.ssh.insert_key = false
+
+  add_pubkey = <<-SHELL
+    set -e
+
+    USER=vagrant
+    HOME_DIR=/home/$USER
+    SSH_DIR=$HOME_DIR/.ssh
+    AUTH_KEYS=$SSH_DIR/authorized_keys
+
+    mkdir -p "$SSH_DIR"
+    chmod 700 "$SSH_DIR"
+    touch "$AUTH_KEYS"
+    chmod 600 "$AUTH_KEYS"
+    chown -R "$USER:$USER" "$SSH_DIR"
+
+    KEY='#{pubkey.gsub("'", %q('"'"'))}'
+
+    # adiciona somente se ainda nao existir
+    grep -qxF "$KEY" "$AUTH_KEYS" || echo "$KEY" >> "$AUTH_KEYS"
+  SHELL
+
+  config.vm.define "weblogic" do |weblogic|
+    weblogic.vm.hostname = "weblogic.local"
+    weblogic.vm.network "public_network", bridge: bridge_iface, ip: "192.168.200.200"
+    weblogic.vm.network "forwarded_port", guest: 7001, host: 7001, host_ip: "127.0.0.1", auto_correct: true
+    weblogic.vm.network "forwarded_port", guest: 7002, host: 7002, host_ip: "127.0.0.1", auto_correct: true
+    weblogic.vm.provision "shell", privileged: true, inline: add_pubkey
+
+    weblogic.vm.provider "virtualbox" do |vb|
+      vb.name = "weblogic-vm"
+      vb.memory = 8192
+      vb.cpus = 4
+    end
+  end
+
+  config.vm.define "database" do |database|
+    database.vm.hostname = "database.local"
+    database.vm.network "public_network", bridge: bridge_iface, ip: "192.168.200.201"
+    database.vm.provision "shell", privileged: true, inline: add_pubkey
+
+    database.vm.provider "virtualbox" do |vb|
+      vb.name = "database-vm"
+      vb.memory = 6144
+      vb.cpus = 2
+    end
+  end
+end
