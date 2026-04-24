@@ -8,6 +8,15 @@
 
 #
 
+### Componentes Weblogic
+#
+### Coherence 
+> É uma camada de cache distribuida integrada ao weblogic ou FMW.
+- É compartilhada entre os managed no domínio e evita que haja recomputação.
+- [Documentação Coherence](https://www.oracle.com/java/coherence)
+- [Coherence- Weblogic](https://uanscarvalho.com.br/coherence-o-que-e-caracteristicas-e-beneficios/)
+
+
 ### Preparando ambiente
 
 - [sdkMan](https://sdkman.io/install/) - Permite instalar versões java de forma mais simplificada

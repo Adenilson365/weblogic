@@ -90,7 +90,7 @@ rm -rf $DOMAIN_HOME/servers/AdminServer/cache
 
 rm -rf $DOMAIN_HOME/servers/soa_server1/data/
 rm -rf $DOMAIN_HOME/servers/soa_server1/tmp/
-rm -rf $DOMAIN_HOME/servers/soa_server1/cache/
+rm -rf $DOMAIN_HOME/servers/soa_server1/cache/opatch 
 
 # Exportar Opatch
 export OPatch=/u01/app/oracle/product/middleware/OPatch/
