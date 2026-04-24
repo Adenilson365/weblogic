@@ -84,6 +84,13 @@ tail -f /u01/app/oracle/logs/adminserver.log
 # Local servers
 #/u01/app/oracle/domains/basicWLSDomain/servers
 
+# Limpar temp
+rm -rf $DOMAIN_HOME/servers/AdminServer/tmp
+rm -rf $DOMAIN_HOME/servers/AdminServer/cache
+
+rm -rf $DOMAIN_HOME/servers/soa_server1/data/
+rm -rf $DOMAIN_HOME/servers/soa_server1/tmp/
+rm -rf $DOMAIN_HOME/servers/soa_server1/cache/
 
 # Exportar Opatch
 export OPatch=/u01/app/oracle/product/middleware/OPatch/
@@ -92,5 +99,10 @@ export PATH=$OPatch:$PATH
 opatch version
 
 
-
-
+## Manipular ear
+# extract ear
+jar xf /u01/app/oracle/product/middleware/user_projects/applications/basicWLSDomain/em.ear
+# repackage ear
+jar cf /u01/app/oracle/product/middleware/user_projects/applications/basicWLSDomain/em.ear .
+	
+  
