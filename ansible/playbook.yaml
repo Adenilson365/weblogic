@@ -221,9 +221,11 @@
         DOMAIN_HOME: /u01/app/oracle/domains/basicWLSDomain
         PATH: /u01/app/oracle/product/java/bin:/u01/app/oracle/product/middleware/oracle_common/common/bin:{{ ansible_env.PATH }}
 
-    - name: Garantir firewalld instalado
+    - name: Instalar firewalld e lib Python
       ansible.builtin.dnf:
-        name: firewalld
+        name:
+          - firewalld
+          - python3-firewall
         state: present
 
     - name: Garantir firewalld rodando
@@ -238,7 +240,6 @@
         permanent: true
         state: enabled
         immediate: true
-
     - name: Liberar porta 7002
       ansible.posix.firewalld:
         port: 7002/tcp
@@ -258,7 +259,7 @@
 
     oracle_sid: "XE"
     oracle_home: "/opt/oracle/product/21c/dbhomeXE"
-    oracle_password: "weblogic123"
+    oracle_password: "Weblogic123"
     oracle_db_base_dirs:
       - /u01/database
       - /u01/software
@@ -314,14 +315,23 @@
       ansible.builtin.command:
         cmd: /usr/bin/python3.11 -m pip install pexpect
         creates: /usr/local/lib/python3.11/site-packages/pexpect
+    - name: Garantir hostname resolvível no /etc/hosts
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: '.*database\.local.*'
+        line: "192.168.200.201 database.local database"
+        state: present
 
+    - name: Garantir hostname da VM database
+      ansible.builtin.hostname:
+        name: database.local
     - name: Configurar Oracle XE 21c
       ansible.builtin.expect:
         command: /etc/init.d/oracle-xe-21c configure
         responses:
           "Specify a password to be used for database accounts.*": "{{ oracle_password }}"
           "Confirm the password.*": "{{ oracle_password }}"
-        timeout: 600
+        timeout: 180
       args:
         creates: /opt/oracle/oradata/XE
       #no_log: true

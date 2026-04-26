@@ -78,8 +78,8 @@ $ORACLE_HOME/oracle_common/common/bin/wlst.sh \
 # Subir node manager e admin server
 cd /u01/app/oracle/domains/basicWLSDomain/bin
 nohup ./startNodeManager.sh > /u01/app/oracle/logs/nodemanager.log &
-nohup ./startWebLogic.sh > /u01/app/oracle/logs/adminserver.log & 
-tail -f /u01/app/oracle/logs/adminserver.log
+nohup ./startWebLogic.sh > /u01/app/oracle/logs/admin/adminserver.out & 
+tail -f /u01/app/oracle/logs/admin/adminserver.out
 
 # Local servers
 #/u01/app/oracle/domains/basicWLSDomain/servers
@@ -88,9 +88,9 @@ tail -f /u01/app/oracle/logs/adminserver.log
 rm -rf $DOMAIN_HOME/servers/AdminServer/tmp
 rm -rf $DOMAIN_HOME/servers/AdminServer/cache
 
-rm -rf $DOMAIN_HOME/servers/soa_server1/data/
-rm -rf $DOMAIN_HOME/servers/soa_server1/tmp/
-rm -rf $DOMAIN_HOME/servers/soa_server1/cache/opatch 
+rm -rf $DOMAIN_HOME/servers/soa1/data/
+rm -rf $DOMAIN_HOME/servers/soa1/tmp/
+rm -rf $DOMAIN_HOME/servers/soa1/cache/
 
 # Exportar Opatch
 export OPatch=/u01/app/oracle/product/middleware/OPatch/

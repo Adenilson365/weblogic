@@ -9,13 +9,16 @@
 #
 
 ### Componentes Weblogic
+
 #
-### Coherence 
+
+### Coherence
+
 > É uma camada de cache distribuida integrada ao weblogic ou FMW.
+
 - É compartilhada entre os managed no domínio e evita que haja recomputação.
 - [Documentação Coherence](https://www.oracle.com/java/coherence)
 - [Coherence- Weblogic](https://uanscarvalho.com.br/coherence-o-que-e-caracteristicas-e-beneficios/)
-
 
 ### Preparando ambiente
 
@@ -139,3 +142,23 @@ ls()
 
 Bugs:
 [Malformed Medium](https://medium.com/nerd-for-tech/solving-url-protocol-exceptions-with-latest-jdk-updates-7c6c85844518)
+
+### Entender Domínio para EM
+
+- Execute a RCU a partir do servidor weblogic
+
+  > Garante que o weblogic consegue se conectar ao banco `telnet ip porta`
+
+- Local da rcu `/u01/app/oracle/product/middleware/oracle_common/bin`
+
+  > crie o arquivo exend_em.properties com a senha do sysdba
+
+- Execute o comando wslt para extender o dominio
+
+```shell
+cd /u01/software/weblogic
+
+$ORACLE_HOME/oracle_common/common/bin/wlst.sh ./extend_em.py  ./extend_em.properties
+
+#
+```
