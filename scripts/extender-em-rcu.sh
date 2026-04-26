@@ -4,7 +4,7 @@
 # senhaforte
 
 ./rcu -silent -createRepository -databaseType ORACLE \
-  -connectString 10.128.15.206:1521/xepdb1 \
+  -connectString 192.168.200.201:1521/xepdb1 \
   -dbUser sys -dbRole sysdba \
   -schemaPrefix DEV02 \
   -useSamePasswordForAllSchemaUsers true \

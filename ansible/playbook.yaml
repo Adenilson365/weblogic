@@ -1,0 +1,348 @@
+---
+- name: Create user and group for WebLogic and Database
+  hosts: all
+  become: True
+  tasks:
+    - name: Create group oinstall
+      group:
+        name: oinstall
+        state: present
+
+    - name: Create user oracle and add to group oinstall
+      user:
+        name: oracle
+        group: oinstall
+        create_home: yes
+        shell: /bin/bash
+        state: present
+- name: Preparing directories for Oracle/WebLogic installation
+  hosts: weblogic
+  become: true
+
+  vars:
+    oracle_base_dirs:
+      - /u01/app/oracle/product
+      - /u01/app/oracle/config
+      - /u01/app/oracle/domains
+      - /u01/app/oracle/logs
+      - /u01/app/oracle/scripts
+      - /u01/software/jdk
+      - /u01/software/weblogic
+      - /u01/software/patches
+
+  tasks:
+    - name: Creating base directories for Oracle/WebLogic
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: oracle
+        group: oinstall
+        mode: "0775"
+      loop: "{{ oracle_base_dirs }}"
+
+    - name: Granting permissions to /u01 for oracle user
+      ansible.builtin.file:
+        path: /u01
+        owner: oracle
+        group: oinstall
+        mode: "0775"
+        recurse: true
+- name: Copying installation files to target hosts
+  hosts: weblogic
+  become: true
+
+  vars:
+    local_installation_weblogic_files:
+      - /home/adenilson/devopsLab/weblogic/weblogic-downloads/weblogic/fmw_12.2.1.4.0_infrastructure.jar
+      - /home/adenilson/devopsLab/weblogic/weblogic-downloads/weblogic/V78170-01.zip
+    local_installation_jdk_files:
+      - /home/adenilson/devopsLab/weblogic/weblogic-downloads/jdk/jdk-8u202-linux-x64.tar.gz
+  tasks:
+    - name: Copying installation files to target hosts
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/u01/software/weblogic/"
+        owner: oracle
+        group: oinstall
+        mode: "0644"
+      loop: "{{ local_installation_weblogic_files }}"
+    - name: Copying JDK installation file to target hosts
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/u01/software/jdk/"
+        owner: oracle
+        group: oinstall
+        mode: "0644"
+      loop: "{{ local_installation_jdk_files }}"
+    - name: Copiyng Response file for silent installation
+      ansible.builtin.copy:
+        src: /home/adenilson/devopsLab/weblogic/scripts/silent.xml
+        dest: /u01/software/weblogic/silent.xml
+        owner: oracle
+        group: oinstall
+        mode: "0644"
+    - name: Copying inventory pointer file for silent installation
+      ansible.builtin.copy:
+        src: /home/adenilson/devopsLab/weblogic/scripts/oraInst.loc
+        dest: /u01/software/weblogic/oraInst.loc
+        owner: oracle
+        group: oinstall
+        mode: "0644"
+    - name: Copying jythonscript for WebLogic createDomain
+      ansible.builtin.copy:
+        src: /home/adenilson/devopsLab/weblogic/scripts/createDomain.py
+        dest: /u01/software/weblogic/createDomain.py
+        owner: oracle
+        group: oinstall
+        mode: "0644"
+- name: Installing WebLogic Server
+  hosts: weblogic
+  become: true
+
+  vars:
+    oracle_user: oracle
+    oracle_group: oinstall
+
+    jdk_archive: jdk-8u202-linux-x64.tar.gz
+    jdk_dir: jdk1.8.0_202
+
+    oracle_product_dir: /u01/app/oracle/product
+    weblogic_software_dir: /u01/software/weblogic
+    middleware_home: /u01/app/oracle/product/middleware
+
+    weblogic_installer: fmw_12.2.1.4.0_infrastructure.jar
+    response_file: /u01/software/weblogic/silent.xml
+    inventory_pointer: /u01/software/weblogic/oraInst.loc
+
+  environment:
+    JAVA_HOME: "{{ oracle_product_dir }}/{{ jdk_dir }}"
+    PATH: "{{ oracle_product_dir }}/{{ jdk_dir }}/bin:{{ ansible_env.PATH }}"
+
+  tasks:
+    - name: moving JDK archive to product directory
+      ansible.builtin.command:
+        cmd: "mv /u01/software/jdk/{{ jdk_archive }} {{ oracle_product_dir }}/"
+        creates: "{{ oracle_product_dir }}/{{ jdk_archive }}"
+
+    - name: Extract JDK
+      ansible.builtin.unarchive:
+        src: "{{ oracle_product_dir }}/{{ jdk_archive }}"
+        dest: "{{ oracle_product_dir }}"
+        remote_src: true
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+        creates: "{{ oracle_product_dir }}/{{ jdk_dir }}"
+
+    - name: delete JDK archive after extraction
+      ansible.builtin.file:
+        path: "{{ oracle_product_dir }}/{{ jdk_archive }}"
+        state: absent
+
+    - name: create symbolic link for java
+      ansible.builtin.file:
+        src: "{{ oracle_product_dir }}/{{ jdk_dir }}"
+        dest: "{{ oracle_product_dir }}/java"
+        state: link
+        force: true
+        owner: "{{ oracle_user }}"
+        group: "{{ oracle_group }}"
+
+    - name: validate Java installation
+      ansible.builtin.command:
+        cmd: "{{ oracle_product_dir }}/java/bin/java -version"
+      register: java_version
+      changed_when: false
+
+    - name: Show Java version output
+      ansible.builtin.debug:
+        var: java_version.stderr_lines
+
+    - name: Validate installation files exist
+      ansible.builtin.stat:
+        path: "{{ item }}"
+      loop:
+        - "{{ weblogic_software_dir }}/{{ weblogic_installer }}"
+        - "{{ response_file }}"
+        - "{{ inventory_pointer }}"
+      register: weblogic_files
+
+    - name: Fail if any required installation file is missing
+      ansible.builtin.fail:
+        msg: "Arquivo obrigatório não encontrado: {{ item.item }}"
+      loop: "{{ weblogic_files.results }}"
+      when: not item.stat.exists
+
+    - name: Install WebLogic Server using silent installation
+      ansible.builtin.command:
+        cmd: >
+          {{ oracle_product_dir }}/java/bin/java
+          -jar {{ weblogic_software_dir }}/{{ weblogic_installer }}
+          -silent
+          -responseFile {{ response_file }}
+          -invPtrLoc {{ inventory_pointer }}
+        chdir: "{{ weblogic_software_dir }}"
+        creates: "{{ middleware_home }}"
+      become_user: "{{ oracle_user }}"
+
+    - name: Check if WebLogic Server was installed successfully
+      ansible.builtin.stat:
+        path: "{{ middleware_home }}"
+      register: middleware_check
+
+    - name: Debug message if WebLogic Server was installed successfully
+      ansible.builtin.debug:
+        msg: "Middleware was installed in {{ middleware_home }}"
+      when: middleware_check.stat.exists
+
+    - name: set env vars to Oracle/WebLogic
+      ansible.builtin.copy:
+        dest: /etc/profile.d/oracle_env.sh
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          export ORACLE_BASE=/u01/app/oracle
+          export ORACLE_HOME=/u01/app/oracle/product/middleware
+          export JAVA_HOME=/u01/app/oracle/product/java
+          export DOMAIN_HOME=/u01/app/oracle/domains/basicWLSDomain
+          export PATH=$JAVA_HOME/bin:$ORACLE_HOME/oracle_common/common/bin:$PATH
+    - name: Criar domínio WebLogic via WLST
+      ansible.builtin.command:
+        cmd: >
+          /u01/app/oracle/product/middleware/oracle_common/common/bin/wlst.sh
+          /u01/software/weblogic/createDomain.py
+        chdir: /u01/software/weblogic
+        creates: /u01/app/oracle/domains/basicWLSDomain
+      become_user: oracle
+      environment:
+        ORACLE_BASE: /u01/app/oracle
+        ORACLE_HOME: /u01/app/oracle/product/middleware
+        JAVA_HOME: /u01/app/oracle/product/java
+        DOMAIN_HOME: /u01/app/oracle/domains/basicWLSDomain
+        PATH: /u01/app/oracle/product/java/bin:/u01/app/oracle/product/middleware/oracle_common/common/bin:{{ ansible_env.PATH }}
+
+    - name: Garantir firewalld instalado
+      ansible.builtin.dnf:
+        name: firewalld
+        state: present
+
+    - name: Garantir firewalld rodando
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Liberar porta 7001
+      ansible.posix.firewalld:
+        port: 7001/tcp
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Liberar porta 7002
+      ansible.posix.firewalld:
+        port: 7002/tcp
+        permanent: true
+        state: enabled
+        immediate: true
+
+- name: Instalar Oracle Database 21c XE
+  hosts: database
+  become: true
+
+  vars:
+    oracle_preinstall_rpm_url: "https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/oracle-database-preinstall-21c-1.0-1.el8.x86_64.rpm"
+    oracle_preinstall_rpm: "/tmp/oracle-database-preinstall-21c-1.0-1.el8.x86_64.rpm"
+
+    oracle_xe_rpm: "/u01/software/oracle-database-xe-21c-1.0-1.ol8.x86_64.rpm"
+
+    oracle_sid: "XE"
+    oracle_home: "/opt/oracle/product/21c/dbhomeXE"
+    oracle_password: "weblogic123"
+    oracle_db_base_dirs:
+      - /u01/database
+      - /u01/software
+
+  tasks:
+    - name: Creating base directories for Oracle DB
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: oracle
+        group: oinstall
+        mode: "0775"
+      loop: "{{ oracle_db_base_dirs }}"
+
+    - name: Granting permissions to /u01 for oracle
+      ansible.builtin.file:
+        path: /u01
+        owner: oracle
+        group: oinstall
+        mode: "0775"
+        recurse: true
+    - name: Copiar RPM do Oracle XE para a VM
+      ansible.builtin.copy:
+        src: /home/adenilson/devopsLab/weblogic/weblogic-downloads/database/oracle-database-xe-21c-1.0-1.ol8.x86_64.rpm
+        dest: /u01/software/oracle-database-xe-21c-1.0-1.ol8.x86_64.rpm
+        owner: root
+        group: root
+        mode: "0644"
+    - name: Baixar RPM de preinstall Oracle 21c
+      ansible.builtin.get_url:
+        url: "{{ oracle_preinstall_rpm_url }}"
+        dest: "{{ oracle_preinstall_rpm }}"
+        mode: "0644"
+
+    - name: Instalar Oracle Database Preinstall 21c
+      ansible.builtin.dnf:
+        name: "{{ oracle_preinstall_rpm }}"
+        state: present
+        disable_gpg_check: true
+
+    - name: Instalar Oracle Database 21c XE
+      ansible.builtin.dnf:
+        name: "{{ oracle_xe_rpm }}"
+        state: present
+        disable_gpg_check: true
+
+    - name: Instalar pip para Python 3.11
+      ansible.builtin.dnf:
+        name: python3.11-pip
+        state: present
+
+    - name: Instalar pexpect no Python 3.11
+      ansible.builtin.command:
+        cmd: /usr/bin/python3.11 -m pip install pexpect
+        creates: /usr/local/lib/python3.11/site-packages/pexpect
+
+    - name: Configurar Oracle XE 21c
+      ansible.builtin.expect:
+        command: /etc/init.d/oracle-xe-21c configure
+        responses:
+          "Specify a password to be used for database accounts.*": "{{ oracle_password }}"
+          "Confirm the password.*": "{{ oracle_password }}"
+        timeout: 600
+      args:
+        creates: /opt/oracle/oradata/XE
+      #no_log: true
+
+    - name: Configurar variáveis de ambiente Oracle XE
+      ansible.builtin.copy:
+        dest: /etc/profile.d/oracle_xe_env.sh
+        owner: root
+        group: root
+        mode: "0755"
+        content: |
+          export ORACLE_SID={{ oracle_sid }}
+          export ORACLE_HOME={{ oracle_home }}
+          export PATH=$PATH:$ORACLE_HOME/bin
+
+    - name: Validar status do Oracle XE
+      ansible.builtin.command:
+        cmd: /etc/init.d/oracle-xe-21c status
+      register: oracle_xe_status
+      changed_when: false
+
+    - name: Exibir status do Oracle XE
+      ansible.builtin.debug:
+        var: oracle_xe_status.stdout_lines

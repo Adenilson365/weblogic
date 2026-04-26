@@ -9,7 +9,7 @@ useradd -g oinstall -G dba -d /u01/app/oracle -m -s /bin/bash oracle
 
 # Criar diretórios necessários:
 mkdir -p /u01/app/oracle/{product,config,domains,logs,scripts}
-mkdir -p /u01/software/{jdk,weblogic}
+mkdir -p /u01/software/{jdk,weblogic,patches}
 
 #### Diretórios ####
 #/u01/app/oracle/product para -> binários do WebLogic e JDK instalados
@@ -65,7 +65,7 @@ ln -sfn /u01/app/oracle/product/jdk1.8.0_471/  java
 # Criar domínio básico do WebLogic
 export ORACLE_BASE=/u01/app/oracle
 export ORACLE_HOME=/u01/app/oracle/product/middleware # onde esta o WebLogic, onde foi isntalado no passo anterior
-export JAVA_HOME=/u01/app/oracle/product/jdk1.8.0_202  # onde esta a JDK 
+export JAVA_HOME=/u01/app/oracle/product/java  # onde esta a JDK 
 export PATH=$JAVA_HOME/bin:$ORACLE_HOME/oracle_common/common/bin:$PATH
 #Domain home
 export DOMAIN_HOME=/u01/app/oracle/domains/basicWLSDomain
