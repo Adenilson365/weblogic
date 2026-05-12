@@ -162,3 +162,14 @@ $ORACLE_HOME/oracle_common/common/bin/wlst.sh ./extend_em.py  ./extend_em.proper
 
 #
 ```
+
+### LDAP
+
+- Posso adicionar LDAP para autenticar meus usuários, no formato
+- control-flags
+  | Flag | Precisa passar? | Continua fluxo? | Falha imediata? | Sucesso imediato? |
+  | ---------- | --------------- | --------------- | --------------- | ----------------- |
+  | REQUIRED | Sim | Sim | Não | Não |
+  | REQUISITE | Sim | Não se falhar | Sim | Não |
+  | SUFFICIENT | Não | Não se passar | Não | Sim |
+  | OPTIONAL | Não | Sim | Não | Não |
