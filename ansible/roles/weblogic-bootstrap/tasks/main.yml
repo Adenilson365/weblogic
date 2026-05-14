@@ -1,0 +1,72 @@
+---
+- name: Create group oinstall
+  ansible.builtin.group:
+    name: "{{ oracle_group }}"
+    state: present
+
+- name: Create user oracle and add to group oinstall
+  ansible.builtin.user:
+    name: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    create_home: true
+    shell: /bin/bash
+    state: present
+
+- name: Creating base directories for Oracle/WebLogic
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0775"
+  loop: "{{ oracle_base_dirs }}"
+
+- name: Granting permissions to /u01 for oracle user
+  ansible.builtin.file:
+    path: /u01
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0775"
+    recurse: true
+
+- name: Copying WebLogic installation files to target host
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ weblogic_software_dir }}/"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+  loop: "{{ local_installation_weblogic_files }}"
+
+- name: Copying JDK installation file to target host
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ jdk_software_dir }}/"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+  loop: "{{ local_installation_jdk_files }}"
+
+- name: Copying response file for silent installation
+  ansible.builtin.copy:
+    src: "{{ weblogic_silent_file_src }}"
+    dest: "{{ weblogic_software_dir }}/silent.xml"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+
+- name: Copying inventory pointer file for silent installation
+  ansible.builtin.copy:
+    src: "{{ weblogic_orainst_file_src }}"
+    dest: "{{ weblogic_software_dir }}/oraInst.loc"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"
+
+- name: Copying Jython script for WebLogic createDomain
+  ansible.builtin.copy:
+    src: "{{ weblogic_create_domain_file_src }}"
+    dest: "{{ weblogic_software_dir }}/createDomain.py"
+    owner: "{{ oracle_user }}"
+    group: "{{ oracle_group }}"
+    mode: "0644"

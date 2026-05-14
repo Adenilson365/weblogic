@@ -1,0 +1,30 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for weblogic-bootstrap
+
+oracle_user: oracle
+oracle_group: oinstall
+
+oracle_base_dirs:
+  - /u01/app/oracle/product
+  - /u01/app/oracle/config
+  - /u01/app/oracle/domains
+  - /u01/app/oracle/logs
+  - /u01/app/oracle/scripts
+  - /u01/software/jdk
+  - /u01/software/weblogic
+  - /u01/software/patches
+
+local_installation_weblogic_files:
+  - /home/adenilson/devopsLab/weblogic/weblogic-downloads/weblogic/fmw_12.2.1.4.0_infrastructure.jar
+  - /home/adenilson/devopsLab/weblogic/weblogic-downloads/weblogic/V78170-01.zip
+
+local_installation_jdk_files:
+  - /home/adenilson/devopsLab/weblogic/weblogic-downloads/jdk/jdk-8u202-linux-x64.tar.gz
+
+weblogic_silent_file_src: /home/adenilson/devopsLab/weblogic/scripts/silent.xml
+weblogic_orainst_file_src: /home/adenilson/devopsLab/weblogic/scripts/oraInst.loc
+weblogic_create_domain_file_src: /home/adenilson/devopsLab/weblogic/scripts/createDomain.py
+
+weblogic_software_dir: /u01/software/weblogic
+jdk_software_dir: /u01/software/jdk

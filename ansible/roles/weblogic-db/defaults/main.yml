@@ -1,0 +1,20 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for weblogic-db
+oracle_preinstall_rpm_url: "https://yum.oracle.com/repo/OracleLinux/OL8/appstream/x86_64/getPackage/oracle-database-preinstall-21c-1.0-1.el8.x86_64.rpm"
+oracle_preinstall_rpm: "/tmp/oracle-database-preinstall-21c-1.0-1.el8.x86_64.rpm"
+
+oracle_xe_rpm_src: "/home/adenilson/devopsLab/weblogic/weblogic-downloads/database/oracle-database-xe-21c-1.0-1.ol8.x86_64.rpm"
+oracle_xe_rpm: "/u01/software/oracle-database-xe-21c-1.0-1.ol8.x86_64.rpm"
+
+oracle_sid: "XE"
+oracle_home: "/opt/oracle/product/21c/dbhomeXE"
+oracle_password: "{{ vault_oracle_password | default('Weblogic123') }}"
+
+oracle_db_ip: "192.168.200.201"
+oracle_db_hostname: "database.local"
+oracle_db_short_hostname: "database"
+
+oracle_db_base_dirs:
+  - /u01/database
+  - /u01/software

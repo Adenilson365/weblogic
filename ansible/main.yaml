@@ -1,0 +1,13 @@
+---
+- name: Instalar Oracle Database 21c XE
+  hosts: database
+  become: true
+
+  roles:
+    - weblogic-db
+# - name: Prepare WebLogic host
+#   hosts: weblogic
+#   become: true
+
+#   roles:
+#     - weblogic-prepare

@@ -1,0 +1,91 @@
+---
+- name: Download RPM  preinstall Oracle 21c
+  ansible.builtin.get_url:
+    url: "{{ oracle_preinstall_rpm_url }}"
+    dest: "{{ oracle_preinstall_rpm }}"
+    mode: "0644"
+
+- name: Instalar Oracle Database Preinstall 21c
+  ansible.builtin.command:
+    cmd: dnf install -y "{{ oracle_preinstall_rpm }}" --nogpgcheck
+  args:
+    creates: /etc/sysctl.d/99-oracle-database-preinstall-21c-sysctl.conf
+
+- name: Creating base directories for Oracle DB
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: oracle
+    group: oinstall
+    mode: "0775"
+  loop: "{{ oracle_db_base_dirs }}"
+
+- name: Granting permissions to /u01 for oracle
+  ansible.builtin.file:
+    path: /u01
+    owner: oracle
+    group: oinstall
+    mode: "0775"
+    recurse: true
+
+- name: Copiar RPM do Oracle XE para a VM
+  ansible.builtin.copy:
+    src: "{{ oracle_xe_rpm_src }}"
+    dest: "{{ oracle_xe_rpm }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Instalar Oracle Database 21c XE
+  ansible.builtin.command:
+    cmd: dnf install -y "{{ oracle_xe_rpm }}" --nogpgcheck
+  args:
+    creates: /etc/init.d/oracle-xe-21c
+
+- name: Garantir hostname resolvível no /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*{{ oracle_db_hostname }}.*"
+    line: "{{ oracle_db_ip }} {{ oracle_db_hostname }} {{ oracle_db_short_hostname }}"
+    state: present
+
+- name: Garantir hostname da VM database
+  ansible.builtin.hostname:
+    name: "{{ oracle_db_hostname }}"
+
+- name: Instalar pexpect no Python 3.11
+  ansible.builtin.command:
+    cmd: /usr/bin/python3.11 -m pip install pexpect
+  args:
+    creates: /usr/local/lib/python3.11/site-packages/pexpect
+
+- name: Configurar Oracle XE 21c
+  ansible.builtin.expect:
+    command: /etc/init.d/oracle-xe-21c configure
+    responses:
+      "Specify a password to be used for database accounts.*": "{{ oracle_password }}"
+      "Confirm the password.*": "{{ oracle_password }}"
+    timeout: 300
+  args:
+    creates: /opt/oracle/oradata/XE
+
+- name: Configurar variáveis de ambiente Oracle XE
+  ansible.builtin.copy:
+    dest: /etc/profile.d/oracle_xe_env.sh
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      export ORACLE_SID={{ oracle_sid }}
+      export ORACLE_HOME={{ oracle_home }}
+      export PATH=$PATH:$ORACLE_HOME/bin
+
+- name: Validar status do Oracle XE
+  ansible.builtin.command:
+    cmd: /etc/init.d/oracle-xe-21c status
+  register: oracle_xe_status
+  changed_when: false
+
+- name: Exibir status do Oracle XE
+  ansible.builtin.debug:
+    var: oracle_xe_status.stdout_lines

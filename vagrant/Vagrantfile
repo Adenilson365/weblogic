@@ -11,7 +11,7 @@ Vagrant.configure("2") do |config|
 
   add_pubkey = <<-SHELL
     set -e
-
+    dnf install -y python3.11 python3.11-pip python3-dnf python3-pexpect
     USER=vagrant
     HOME_DIR=/home/$USER
     SSH_DIR=$HOME_DIR/.ssh
