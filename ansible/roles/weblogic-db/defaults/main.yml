@@ -11,7 +11,7 @@ oracle_sid: "XE"
 oracle_home: "/opt/oracle/product/21c/dbhomeXE"
 oracle_password: "{{ vault_oracle_password | default('Weblogic123') }}"
 
-oracle_db_ip: "192.168.200.201"
+oracle_db_ip: "192.168.56.201"
 oracle_db_hostname: "database.local"
 oracle_db_short_hostname: "database"
 

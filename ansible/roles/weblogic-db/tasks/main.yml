@@ -65,7 +65,7 @@
     responses:
       "Specify a password to be used for database accounts.*": "{{ oracle_password }}"
       "Confirm the password.*": "{{ oracle_password }}"
-    timeout: 300
+    timeout: 600
   args:
     creates: /opt/oracle/oradata/XE
 

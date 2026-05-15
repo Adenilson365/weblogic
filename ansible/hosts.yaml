@@ -3,11 +3,11 @@ all:
     weblogic_servers:
       hosts:
         weblogic:
-          ansible_host: 192.168.200.200
+          ansible_host: 192.168.56.200
           ansible_python_interpreter: /usr/bin/python3.11
 
     database_servers:
       hosts:
         database:
-          ansible_host: 192.168.200.201
+          ansible_host: 192.168.56.201
           ansible_python_interpreter: /usr/bin/python3.11

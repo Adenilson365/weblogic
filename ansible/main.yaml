@@ -5,9 +5,9 @@
 
   roles:
     - weblogic-db
-# - name: Prepare WebLogic host
-#   hosts: weblogic
-#   become: true
+- name: Prepare WebLogic host
+  hosts: weblogic
+  become: true
 
-#   roles:
-#     - weblogic-prepare
+  roles:
+    - weblogic-bootstrap

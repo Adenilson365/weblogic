@@ -1,57 +1,57 @@
-Vagrant.configure("2") do |config|
-  pubkey_path = ENV.fetch("PUBKEY_PATH", File.expand_path("../.id_rsa.pub", __dir__))
-  pubkey = File.exist?(pubkey_path) ? File.read(pubkey_path).strip : ""
-  raise "Public key not found or empty: #{pubkey_path}" if pubkey.empty?
-  bridge_iface = ENV.fetch("VAGRANT_BRIDGE", "enp2s0")
+PUBKEY_PATH = ENV.fetch("PUBKEY_PATH", File.expand_path("../.id_rsa.pub", __dir__))
+PUBKEY = File.exist?(PUBKEY_PATH) ? File.read(PUBKEY_PATH).strip : ""
 
-  # Box base Oracle Linux 8
+raise "Public key not found or empty: #{PUBKEY_PATH}" if PUBKEY.empty?
+
+Vagrant.configure("2") do |config|
   config.vm.box = "generic/oracle8"
   config.vm.synced_folder ".", "/vagrant", disabled: true
   config.ssh.insert_key = false
 
-  add_pubkey = <<-SHELL
-    set -e
-    dnf install -y python3.11 python3.11-pip python3-dnf python3-pexpect
-    USER=vagrant
-    HOME_DIR=/home/$USER
-    SSH_DIR=$HOME_DIR/.ssh
-    AUTH_KEYS=$SSH_DIR/authorized_keys
+  nodes = [
+    { name: "weblogic", hostname: "weblogic.local", ip: "192.168.56.200", mem: 4096, cpu: 4, ports: [7001, 7002] },
+    { name: "database", hostname: "database.local", ip: "192.168.56.201", mem: 2048, cpu: 2, ports: [1521] }
+  ]
 
-    mkdir -p "$SSH_DIR"
-    chmod 700 "$SSH_DIR"
-    touch "$AUTH_KEYS"
-    chmod 600 "$AUTH_KEYS"
-    chown -R "$USER:$USER" "$SSH_DIR"
+  nodes.each do |node|
+    config.vm.define node[:name] do |vm|
+      vm.vm.hostname = node[:hostname]
+      vm.vm.network "private_network", ip: node[:ip]
 
-    KEY='#{pubkey.gsub("'", %q('"'"'))}'
+      node[:ports].each do |port|
+        vm.vm.network "forwarded_port",
+          guest: port,
+          host: port,
+          host_ip: "127.0.0.1",
+          auto_correct: true
+      end
 
-    # adiciona somente se ainda nao existir
-    grep -qxF "$KEY" "$AUTH_KEYS" || echo "$KEY" >> "$AUTH_KEYS"
-  SHELL
+      vm.vm.provider "virtualbox" do |vb|
+        vb.name = "#{node[:name]}-vm"
+        vb.memory = node[:mem]
+        vb.cpus = node[:cpu]
+      end
 
-  config.vm.define "weblogic" do |weblogic|
-    weblogic.vm.hostname = "weblogic.local"
-    weblogic.vm.network "public_network", bridge: bridge_iface, ip: "192.168.200.200"
-    weblogic.vm.network "forwarded_port", guest: 7001, host: 7001, host_ip: "127.0.0.1", auto_correct: true
-    weblogic.vm.network "forwarded_port", guest: 7002, host: 7002, host_ip: "127.0.0.1", auto_correct: true
-    weblogic.vm.provision "shell", privileged: true, inline: add_pubkey
+      vm.vm.provision "shell", privileged: true, inline: <<-SHELL
+        set -e
 
-    weblogic.vm.provider "virtualbox" do |vb|
-      vb.name = "weblogic-vm"
-      vb.memory = 4096
-      vb.cpus = 4
-    end
-  end
+        dnf install -y python3.11 python3.11-pip python3-dnf python3-pexpect
 
-  config.vm.define "database" do |database|
-    database.vm.hostname = "database.local"
-    database.vm.network "public_network", bridge: bridge_iface, ip: "192.168.200.201"
-    database.vm.provision "shell", privileged: true, inline: add_pubkey
+        USER=vagrant
+        HOME_DIR=/home/$USER
+        SSH_DIR=$HOME_DIR/.ssh
+        AUTH_KEYS=$SSH_DIR/authorized_keys
 
-    database.vm.provider "virtualbox" do |vb|
-      vb.name = "database-vm"
-      vb.memory = 2048
-      vb.cpus = 2
+        mkdir -p "$SSH_DIR"
+        chmod 700 "$SSH_DIR"
+        touch "$AUTH_KEYS"
+        chmod 600 "$AUTH_KEYS"
+        chown -R "$USER:$USER" "$SSH_DIR"
+
+        KEY='#{PUBKEY.gsub("'", %q('"'"'))}'
+
+        grep -qxF "$KEY" "$AUTH_KEYS" || echo "$KEY" >> "$AUTH_KEYS"
+      SHELL
     end
   end
 end
