@@ -16,15 +16,16 @@ oracle_base_dirs:
   - /u01/software/patches
 
 local_installation_weblogic_files:
-  - /home/adenilson/devopsLab/weblogic/weblogic-downloads/weblogic/fmw_12.2.1.4.0_infrastructure.jar
-  - /home/adenilson/devopsLab/weblogic/weblogic-downloads/weblogic/V78170-01.zip
+  - ../weblogic-downloads/weblogic/122140/fmw_12.2.1.4.0_infrastructure.jar
+  - ../weblogic-downloads/weblogic/122140/V78170-01.zip
+  - ../weblogic-downloads/weblogic/122140/fmw_12.2.1.3.0_infrastructure.jar
 
 local_installation_jdk_files:
-  - /home/adenilson/devopsLab/weblogic/weblogic-downloads/jdk/jdk-8u202-linux-x64.tar.gz
+  - ../weblogic-downloads/jdk/jdk-8u211-linux-x64.tar.gz
 
-weblogic_silent_file_src: /home/adenilson/devopsLab/weblogic/scripts/silent.xml
-weblogic_orainst_file_src: /home/adenilson/devopsLab/weblogic/scripts/oraInst.loc
-weblogic_create_domain_file_src: /home/adenilson/devopsLab/weblogic/scripts/createDomain.py
+weblogic_silent_file_src: ../scripts/silent.xml
+weblogic_orainst_file_src: ../scripts/oraInst.loc
+weblogic_create_domain_file_src: ../scripts/createDomain.py
 
 weblogic_software_dir: /u01/software/weblogic
 jdk_software_dir: /u01/software/jdk

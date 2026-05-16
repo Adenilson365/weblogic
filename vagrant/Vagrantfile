@@ -1,7 +1,11 @@
-PUBKEY_PATH = ENV.fetch("PUBKEY_PATH", File.expand_path("../.id_rsa.pub", __dir__))
-PUBKEY = File.exist?(PUBKEY_PATH) ? File.read(PUBKEY_PATH).strip : ""
+AUTHORIZED_KEYS_PATH = ENV.fetch(
+  "AUTHORIZED_KEYS_PATH",
+  File.expand_path("../.authorized_keys", __dir__)
+)
 
-raise "Public key not found or empty: #{PUBKEY_PATH}" if PUBKEY.empty?
+AUTHORIZED_KEYS = File.exist?(AUTHORIZED_KEYS_PATH) ? File.read(AUTHORIZED_KEYS_PATH).strip : ""
+
+raise "authorized_keys not found or empty: #{AUTHORIZED_KEYS_PATH}" if AUTHORIZED_KEYS.empty?
 
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/oracle8"
@@ -9,22 +13,16 @@ Vagrant.configure("2") do |config|
   config.ssh.insert_key = false
 
   nodes = [
-    { name: "weblogic", hostname: "weblogic.local", ip: "192.168.56.200", mem: 4096, cpu: 4, ports: [7001, 7002] },
-    { name: "database", hostname: "database.local", ip: "192.168.56.201", mem: 2048, cpu: 2, ports: [1521] }
+    { name: "weblogic", hostname: "weblogic.local", ip: "192.168.200.200", mem: 4096, cpu: 4, ports: [7001, 7002] },
+    { name: "database", hostname: "database.local", ip: "192.168.200.201", mem: 2048, cpu: 2, ports: [1521] }
   ]
 
   nodes.each do |node|
     config.vm.define node[:name] do |vm|
       vm.vm.hostname = node[:hostname]
-      vm.vm.network "private_network", ip: node[:ip]
 
-      node[:ports].each do |port|
-        vm.vm.network "forwarded_port",
-          guest: port,
-          host: port,
-          host_ip: "127.0.0.1",
-          auto_correct: true
-      end
+      vm.vm.network "public_network",
+        ip: node[:ip]
 
       vm.vm.provider "virtualbox" do |vb|
         vb.name = "#{node[:name]}-vm"
@@ -48,9 +46,11 @@ Vagrant.configure("2") do |config|
         chmod 600 "$AUTH_KEYS"
         chown -R "$USER:$USER" "$SSH_DIR"
 
-        KEY='#{PUBKEY.gsub("'", %q('"'"'))}'
+        AUTHORIZED_KEYS_CONTENT='#{AUTHORIZED_KEYS.gsub("'", %q('"'"'))}'
 
-        grep -qxF "$KEY" "$AUTH_KEYS" || echo "$KEY" >> "$AUTH_KEYS"
+        echo "$AUTHORIZED_KEYS_CONTENT" > "$AUTH_KEYS"
+        chmod 600 "$AUTH_KEYS"
+        chown "$USER:$USER" "$AUTH_KEYS"
       SHELL
     end
   end
